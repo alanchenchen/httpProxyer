@@ -1,5 +1,5 @@
 const http = require('http')
-const HttpProxyPlugin = require('../../proxy')
+const HttpProxyPlugin = require('../../src/proxy')
 
 const PORT = 7070
 const HOST_NAME =  `http://localhost:${PORT}`

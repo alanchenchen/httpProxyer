@@ -1,5 +1,5 @@
 const http = require('http')
-const HttpProxyPlugin = require('../../proxy')
+const HttpProxyPlugin = require('../../src/proxy')
 
 const PortList = [
     1010,
