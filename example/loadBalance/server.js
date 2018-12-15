@@ -1,5 +1,5 @@
 const http = require('http')
-const HttpProxyPlugin = require('./proxy')
+const HttpProxyPlugin = require('../../proxy')
 
 const PortList = [
     1010,
@@ -29,17 +29,6 @@ http.createServer((req, res) => {
 }).listen(3000, () => {
     console.log('反向代理服务器启动成功，监听3000端口...')
 })
-
-// 正向代理(内置服务器)
-// const ins = HttpProxyPlugin.createProxyHttpServer({
-//     target: 'http://localhost:7070'
-// }).listen(3000, '192.168.0.43')
-
-// ins.on('proxyRequest', res => {
-//     // console.log(ins)
-//     const { stream, ...info } = res
-//     console.log(info)
-// })
 
 let n = 0
 const generateHanlder = (port) => {

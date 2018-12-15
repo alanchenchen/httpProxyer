@@ -1,0 +1,1 @@
+const HttpProxyPlugin = require('../../proxy')

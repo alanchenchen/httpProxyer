@@ -1,25 +1,22 @@
 const http = require('http')
 const querystring = require('querystring')
-const HttpProxyPlugin = require('./proxy')
+const fs = require('fs')
 
-let n = 0
 const GET = ({data={}, path='/', port=8080, host='localhost'} = {}) => {
     const opts = `http://${host}:${port}${path}`
     const url = Object.keys(data).length>=1
                 ? `${opts}?${querystring.stringify(data)}`
                 : opts
     http.get(url, res => {
-            // console.log('请求方式： GET')
-            // console.log(`请求地址：${url}`)
-            // console.log(`状态码: ${res.statusCode}`)
-            // console.log(`状态码信息: ${res.statusMessage}`)
-            // console.log(`响应头: ${JSON.stringify(res.headers)}`)
-        n++
+            console.log('请求方式： GET')
+            console.log(`请求地址：${url}`)
+            console.log(`状态码: ${res.statusCode}`)
+            console.log(`状态码信息: ${res.statusMessage}`)
+            console.log(`响应头: ${JSON.stringify(res.headers)}`)
         res.on('data', chunk => {
             console.log(`响应主体: ${chunk}`)
         })
         res.on('end', () => {
-            console.log(`第${n}次请求响应成功！`)
             // console.log('响应中已无数据')
         })
     })
@@ -33,7 +30,7 @@ const POST = ({data={}, path='/', port=8080, host='localhost', headers={}} = {})
         path,
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            // 'Content-Type': 'application/x-www-form-urlencoded',
             ...headers
         }
     }
@@ -46,6 +43,8 @@ const POST = ({data={}, path='/', port=8080, host='localhost', headers={}} = {})
         case 'application/json': 
             postData = JSON.stringify(data)
             break
+        default:
+            postData = data
     }
 
     const req = http.request(opts, (res) => {
@@ -58,7 +57,7 @@ const POST = ({data={}, path='/', port=8080, host='localhost', headers={}} = {})
             console.log(`响应主体: ${chunk}`)
         })
         res.on('end', () => {
-            console.log('响应中已无数据')
+            // console.log('响应中已无数据')
         })
     })
     
@@ -72,28 +71,24 @@ const POST = ({data={}, path='/', port=8080, host='localhost', headers={}} = {})
 }
 
 const PORT = 3000
-for(let i=1; i<=3000; i++) {
-    GET({
-        data: {
-            from: 8080,
-            to: 7070,
-            test: 'test-proxy-http-server...'
-        },
-        path: '/proxy',
-        port: PORT
-    })
-}
 
-// for(let i=0; i<1000; i++) {
-//     POST({
-//         data: {
-//             hi: 'chen',
-//             from: 'hihihi'
-//         },
-//         port: PORT,
-//         host: '192.168.0.43',
-//         headers: {
-//             'Content-Type': 'application/json'
-//         }
-//     })
-// }
+// GET({
+//     data: {
+//         from: 8080,
+//         to: 7070,
+//         test: 'test-proxy-http-server...'
+//     },
+//     path: '/proxy',
+//     port: PORT
+// })
+
+POST({
+    data: {
+        hi: 'chen',
+        from: 'hihihi'
+    },
+    port: PORT,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+})
