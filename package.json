@@ -2,7 +2,7 @@
   "name": "@alanchenchen/httpproxyer",
   "version": "0.0.3",
   "description": "A simple http server proxy module implented with nodejs",
-  "main": "proxy.js",
+  "main": "src/proxy.js",
   "directories": {
     "example": "example"
   },

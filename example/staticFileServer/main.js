@@ -14,7 +14,7 @@ const http = require('http')
  */
 http.createServer(async (req, res) => {
     const flag = await staticFile.start(req, res, {
-        // rootPath: './example/emitEvents',
+        rootPath: '../../',
         homePage: 'main.js'
     })
     if(!flag) {
