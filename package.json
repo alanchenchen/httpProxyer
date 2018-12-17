@@ -1,6 +1,6 @@
 {
   "name": "@alanchenchen/httpproxyer",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "author": "Alan Chen",
   "license": "MIT",
   "description": "A simple http server proxy module implented with nodejs",
@@ -9,7 +9,6 @@
     "example": "example"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -21,8 +20,5 @@
   "homepage": "https://github.com/alanchenchen/httpProxyer#readme",
   "engines": {
     "node": ">= 8.11.1"
-  },
-  "dependencies": {
-    "express": "^4.16.4"
   }
 }
