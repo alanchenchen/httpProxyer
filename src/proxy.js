@@ -1,5 +1,6 @@
 const http = require('http')
 const { parse } = require('url')
+const version = require('../package.json').version
 
 const NeedRequestBodyMethods = ['PUT', 'POST', 'PATCH']
 
@@ -32,7 +33,7 @@ const queryFunctionParams = fn => {
 
 class ProxyHttp {
     constructor() {
-        this.version = '0.0.3'
+        this.version = version
         this.createdBy = 'alanchenchen@github.com'
         this.proxyEvents = {}
     }
@@ -56,7 +57,7 @@ class ProxyHttp {
                 writeStream.setHeader(item[0], item[1])
             })
             /**
-             * 插件的proxyResponse事件在转发请求，目标服务器数据读取完，返回转发数据之前触发
+             * 插件的proxyResponse事件在转发请求，目标服务器数据响应成功，返回响应数据到客户端之前触发
              * 1. 当没有事件监听时，默认返回目标服务器的数据
              * 2. 当有事件监听时，通过函数字符串解析匹配正则来判断，回调函数里是否调用了write、end或pipe方法
              * 3. 一旦调用上述方法，则重写目标服务器数据，否则默认返回目标服务器数据
@@ -64,7 +65,7 @@ class ProxyHttp {
              * 如果想重写返回数据，必须调用writeStream的write()或end()方法或pipe给writeStream
              * writeStream => 代理服务器返回给源请求的数据，可写流
              * res => 目标服务器返回给代理服务器的数据，可读流
-             * proxyResponseData => 包含请求头和http返回码的信息对象，只读
+             * proxyResponseData => 包含响应头和http状态码的信息对象，只读
              */
             const proxyResponseData = {
                     headers: responseHeaders,
@@ -102,13 +103,13 @@ class ProxyHttp {
         const reqRegExpRule = new RegExp(`(${proxyReqStr}\.(write|end)|pipe\.${proxyReqStr})`)
         const shouldRequestSourceChunks = !this.proxyEvents['proxyRequest'] || !reqRegExpRule.test(reqFnStr)
 
-        // 仅当请求是POST、PUT或PATCH，proxy server发出请求带上请求体信息
-        if(NeedRequestBodyMethods.includes(options.method)) {
-            if(this.proxyEvents['proxyRequest']) {
-                const proxyRequestData = options
-                this.proxyEvents['proxyRequest'](ClientRequest, proxyRequestData)
-            }
-            if(shouldRequestSourceChunks) {
+        if(this.proxyEvents['proxyRequest']) {
+            const proxyRequestData = options
+            this.proxyEvents['proxyRequest'](ClientRequest, proxyRequestData)
+        }
+        if(shouldRequestSourceChunks) {
+            // 仅当请求是POST、PUT或PATCH，proxy server发出请求带上请求体信息
+            if(NeedRequestBodyMethods.includes(options.method)) {
                 reqBody.forEach(body => {
                     if(typeof body == 'string' || Buffer.isBuffer(body)) {
                         ClientRequest.write(body)
@@ -124,7 +125,7 @@ class ProxyHttp {
              * 插件的proxyError事件在转发请求发生错误时触发
              */
             this.proxyEvents['proxyError']
-            && this.proxyEvents['proxyError'](e, flag='server')
+            && this.proxyEvents['proxyError'](e, 'server')
             throw new Error('some errors occured from http server')
         })
     }
@@ -167,7 +168,7 @@ class ProxyHttp {
             req.on('error', (e) => {
                 // 插件的proxyError事件在接收请求，发生错误触发
                 this.proxyEvents['proxyError']
-                && this.proxyEvents['proxyError'](e, flag='client')
+                && this.proxyEvents['proxyError'](e, 'client')
             })
 
             return this

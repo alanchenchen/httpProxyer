@@ -1,6 +1,12 @@
 const http = require('http')
 const HttpProxyPlugin = require('../../src/proxy')
 
+/**
+ * 这个例子通过模拟一个服务器集群，展示极简的负载均衡
+ * 测试结果：
+ *  1. 在windows上，通过增加服务器进程，可以压住3000以上的并发量。失败率很低，并发数越大，越趋向于负载均衡
+ *  3. 在mac上，没有实现负载均衡，并且一个代理服务器会崩溃，必须给代理服务器做集群(例如开多进程)才能压住3000以上并发量
+ */
 const PortList = [
     1010,
     2020,
@@ -19,7 +25,7 @@ const HOST_NAME = PortList.map(port => {
     return `http://localhost:${port}`
 })
 
-// 反向代理(挂在中间服务器里面做代理)
+// 通过轮询实现极简的负载均衡, 理论上当并发量增大时，也需要增加多个代理服务器
 http.createServer((req, res) => {
     const nowHost = HOST_NAME.shift()
     HttpProxyPlugin.proxy(req, res, {
@@ -59,6 +65,7 @@ const generateHanlder = (port) => {
     }
 }
 
+// 开启多个目标服务器进程，模拟多服务器集群
 PortList.forEach(port => {
     http.createServer(generateHanlder(port)).listen(port, () => {
         console.log(`server ${port} is running...`)

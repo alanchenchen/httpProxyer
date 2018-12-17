@@ -2,7 +2,7 @@ const { createReadStream } = require('fs')
 const { join } = require('path')
 
 /**
- * @description 搭建静态服务器的工具类
+ * @description 搭建静态服务器的插件
  * @class
  *  @static 
  *   @method start 开启静态文件服务器
@@ -11,7 +11,7 @@ const { join } = require('path')
  *     @param {Object} 包含两个可选key
  *                  rootPath => 指定文件目录作为服务器根目录，默认为'/'，即进程运行的的目录
  *                  homePage => 当req的url为'/'时跳转的首页文件，默认为'index.html'
- *     @returns {Boolean} 返回一个布尔值，用来判断当前路径是否存在静态文件
+ *     @returns {Promise} promise只会存在then，then返回一个布尔值，用来判断当前路径是否存在静态文件。true，会返回文件，false，表示当前路径不存在静态文件
  **/
 class StaticFile {
     static start(req, res, { rootPath='/', homePage='index.html' } = {}) {

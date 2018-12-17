@@ -1,10 +1,14 @@
 const http = require('http')
 const HttpProxyPlugin = require('../../src/proxy')
 
+/**
+ * 这个例子是展示HttpProxyPlugin插件提供的事件钩子函数
+ */
+
 const PORT = 7070
 const HOST_NAME =  `http://localhost:${PORT}`
 
-// 反向代理(挂在中间服务器里面做代理)
+// 挂在已有服务器里面做代理
 http.createServer((req, res) => {
     const ins = HttpProxyPlugin.proxy(req, res, {
         target: HOST_NAME
@@ -23,14 +27,14 @@ http.createServer((req, res) => {
     console.log('反向代理服务器启动成功，监听3000端口...')
 })
 
-// 正向代理(内置服务器)
+// 自启内置服务器做代理
 // const ins = HttpProxyPlugin.createProxyServer({
 //     target: 'http://localhost:7070'
 // }).listen(3000, '192.168.0.43')
 
-// ins.on('proxyRequest', (proxyReq, res, info) => {
+// ins.on('proxyRequest', (proxyReq, opt) => {
 //     // console.log(ins)
-//     console.log(info)
+//     console.log(opt)
 // })
 
 const generateHanlder = (port) => {
