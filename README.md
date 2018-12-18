@@ -10,6 +10,8 @@
 
 > Date: 2018/12/17
 
+[![Build Status](https://travis-ci.org/alanchenchen/httpProxyer.svg?branch=master)](https://travis-ci.org/alanchenchen/httpProxyer)
+
 ## Usage 
 
 1. `npm install --save @alanchenchen/httpproxyer` or `yarn add @alanchenchen/httpproxyer`
