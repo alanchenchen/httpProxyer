@@ -30,7 +30,9 @@ http.createServer((req, res) => {
 // 自启内置服务器做代理
 // const ins = HttpProxyPlugin.createProxyServer({
 //     target: 'http://localhost:7070'
-// }).listen(3000, '192.168.0.43')
+// }).listen(3000, () => {
+//     console.log('反向代理服务器启动成功，监听3000端口...')
+// })
 
 // ins.on('proxyRequest', (proxyReq, opt) => {
 //     // console.log(ins)
@@ -63,6 +65,6 @@ const generateHanlder = (port) => {
     }
 }
 
-http.createServer(generateHanlder(PORT)).listen(PORT, () => {
-    console.log(`目标服务器启动成功，监听${PORT}...`)
-})
+// http.createServer(generateHanlder(PORT)).listen(PORT, () => {
+//     console.log(`目标服务器启动成功，监听${PORT}...`)
+// })

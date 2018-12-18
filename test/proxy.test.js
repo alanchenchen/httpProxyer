@@ -2,27 +2,32 @@ const assert = require('assert')
 const http = require('http')
 const proxyPlugin = require('../src/proxy')
 
-// target server 7070
-http.createServer((req, res) => {
-    const reqHeaders = req.headers
-    // return the headers from request info
-    Object.entries(reqHeaders).forEach(item => {
-        res.setHeader(item[0], item[1])
-    })
-    res.writeHead(200, {
-        'Content-Type': 'text/plain;charset=utf8'
-    })
-    res.end(JSON.stringify({
-        port: 7070,
-        msg: 'success'
-    }))
-}).listen(7070)
 
 describe('httpProxyer', function() {
+    // target server 7070
+    const targetServer = http.createServer((req, res) => {
+        const reqHeaders = req.headers
+        // return the headers from request info
+        Object.entries(reqHeaders).forEach(item => {
+            res.setHeader(item[0], item[1])
+        })
+        res.writeHead(200, {
+            'Content-Type': 'text/plain;charset=utf8'
+        })
+        res.end(JSON.stringify({
+            port: 7070,
+            msg: 'success'
+        }))
+    }).listen(7070)
+    
     describe('init one inner proxy server, use createProxyServer()', function() {
+        let server
+        afterEach(function() {
+            server.close()
+        })
         it('should proxy server 7070 to server 3000', function(done) {
             // proxy server 3000
-            proxyPlugin.createProxyServer({
+            server = proxyPlugin.createProxyServer({
                 target: 'http://localhost:7070'
             }).listen(3000)
     
@@ -43,9 +48,13 @@ describe('httpProxyer', function() {
     })
 
     describe('proxy an existing server, use proxy()', function() {
+        let server
+        afterEach(function() {
+            server.close()
+        })
         it('should proxy server 7070 to server 3001', function(done) {
             // proxy server 3001
-            http.createServer((req, res) => {
+            server = http.createServer((req, res) => {
                 proxyPlugin.proxy(req, res, {
                     target: 'http://localhost:7070'
                 })
@@ -68,9 +77,13 @@ describe('httpProxyer', function() {
     })
 
     describe('use the event hooks by on()', function() {
+        let server
+        afterEach(function() {
+            server.close()
+        })
         it('should intercept the req or res data', function(done) {
             // proxy server 3002
-            http.createServer((req, res) => {
+            server = http.createServer((req, res) => {
                 const ins = proxyPlugin.proxy(req, res, {
                     target: 'http://localhost:7070'
                 })
@@ -98,4 +111,8 @@ describe('httpProxyer', function() {
             })
         })
     })
+    after('if all tests succeed, close the http process', function() {
+        targetServer.close()
+    })
+
 })

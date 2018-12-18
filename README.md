@@ -4,7 +4,7 @@
 
 > Author : Alan Chen
 
-> version: 0.0.5
+> version: 0.0.6
 
 > node >= 8.11.1
 
@@ -38,6 +38,7 @@
     * `proxyError` 在代理服务器接收客户端请求或转发请求发生错误时触发，函数有2个参数
         * error `[Error]` 错误对象
         * from `[String]` server或client中其一种字符串。server表示错误发生在代理服务请求出错。client表示代理服务器接收客户端请求出错。  
+4. ProxyHttp实例还自带一个`close`方法，使用方法和node的http模块类似。可选一个回调函数，当关闭服务器后触发。
 
 ### staticServer 
 导出一个对象，自带1个方法`start`。返回一个promise，promise只会存在then，then返回一个布尔值，用来判断当前路径是否存在静态文件。true，会返回文件，false，表示当前路径不存在静态文件。参数如下：
