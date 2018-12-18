@@ -8,7 +8,7 @@
 
 > node >= 8.11.1
 
-> Date: 2018/12/17
+> Date: 2018/12/18
 
 [![Build Status](https://travis-ci.org/alanchenchen/httpProxyer.svg?branch=master)](https://travis-ci.org/alanchenchen/httpProxyer)
 
@@ -48,6 +48,14 @@
     * homePage `[String]` 当req的url为'/'时跳转的首页文件，默认为'index.html'
 
 > 基于两个插件实现的express中间件用法和上面类似，可以去[example/express](./example/express/server.js)看详细例子。 
+
+## Unit tests
+* test目录里目前只有一个测试用例，分别测试了`httpProxyer`的`createProxyServer()`、`proxy()`和`on()`方法。
+* 测试框架为mocha，如果需要增加测试用例，操作如下：
+    1. git clone git@github.com:alanchenchen/library-template.git
+    2. 在test目录里新增测试文件，约定测试文件必须是`*.test.js`后缀格式，必须在js后缀前加test后缀。
+    3. `yarn`或`npm install`安装开发依赖mocha
+    4. `npm test`在终端terminal查看测试结果
 
 ## license
 * MIT

@@ -179,7 +179,7 @@ class ProxyHttp {
 
     listen(port=80, host='localhost', cb) {
         http.createServer(this.proxyServerListener).listen(port, host, () => {
-            console.log(`proxy server http://${host}:${port} to ${this.targetServer} is running...`)
+            // console.log(`proxy server http://${host}:${port} to ${this.targetServer} is running...`)
             cb && cb()
         })
 
