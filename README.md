@@ -10,6 +10,8 @@
 
 > Date: 2018/12/18
 
+[![](assets/logo.png)](https://www.npmjs.com/package/@alanchenchen/httpproxyer)
+
 [![Build Status](https://travis-ci.org/alanchenchen/httpProxyer.svg?branch=master)](https://travis-ci.org/alanchenchen/httpProxyer)
 ![](https://img.shields.io/npm/v/@alanchenchen/httpproxyer.svg)
 ![](https://img.shields.io/node/v/@alanchenchen/httpproxyer.svg)
