@@ -1,5 +1,5 @@
-const staticFile = require('../../src/staticServer')
-const httpProxyer = require('../../src/proxy')
+const staticFile = require('../../src/index').staticServer
+const httpProxyer = require('../../src/index').httpProxyer
 const http = require('http')
 
 /**

@@ -1,4 +1,4 @@
-const proxyPlugin = require('./proxy')
+const proxyPlugin = require('../core/proxy')
 
 /**
  * @description 基于httpProxyer扩展的express中间件，支持事件监听。注意：此中间件后面无法再继续处理中间件，因为res已经被处理了

@@ -1,7 +1,6 @@
 const assert = require('assert')
 const http = require('http')
-const proxyPlugin = require('../src/proxy')
-
+const proxyPlugin = require('../src/index').httpProxyer
 
 describe('httpProxyer', function() {
     // target server 7070
@@ -77,28 +76,30 @@ describe('httpProxyer', function() {
     })
 
     describe('use the event hooks by on()', function() {
-        let server
-        afterEach(function() {
-            server.close()
-        })
-        it('should intercept the req or res data', function(done) {
-            // proxy server 3002
-            server = http.createServer((req, res) => {
-                const ins = proxyPlugin.proxy(req, res, {
-                    target: 'http://localhost:7070'
-                })
+        // proxy server 3002
+        let server = http.createServer((req, res) => {
+            const ins = proxyPlugin.proxy(req, res, {
+                target: 'http://localhost:7070'
+            })
 
-                /**
-                 * since GET method has no headers, if you wanna test the proxyRequest hook, add a POST request by yourself.
-                 */
-                
-                // proxyResponse hook, you can rewrite the response data or only fetch response headers and httpCode.
-                ins.on('proxyResponse', (proxyRes, res, opts) => {
-                    proxyRes.write('response data has been rewriten')
-                    proxyRes.end()
-                })
-            }).listen(3002)
+            /**
+             * since GET method has no body, if you wanna test the proxyRequest hook to rewrite the request body, add a POST request by yourself.
+             */
 
+            // proxyRequest hook, you can rewrite the request data or only fetch request headers and request body.
+            ins.on('proxyRequest', (proxyReq, opts) => {
+                proxyReq.setHeader('whomai', 'httpProxyer')
+                proxyReq.end()
+            })
+
+            // proxyResponse hook, you can rewrite the response data or only fetch response headers and httpCode.
+            ins.on('proxyResponse', (proxyRes, res, opts) => {
+                proxyRes.write('response data has been rewriten')
+                proxyRes.end()
+            })
+        }).listen(3002)
+
+        it('should intercept the res data', function(done) {
             // GET request to server 3002
             http.get('http://localhost:3002', res => {
                 res.on('data', chunk => {
@@ -110,7 +111,20 @@ describe('httpProxyer', function() {
                 })
             })
         })
+        it('should intercept the req data', function(done) {
+            // GET request to server 3002
+             http.get('http://localhost:3002')
+
+            // targetServer 7070 resolve the request info
+            targetServer.on('request', (req, res) => {
+                const whomai = req.headers['whomai']
+                server.close()
+                assert.equal(whomai, 'httpProxyer')
+                done()
+            })
+        })
     })
+
     after('if all tests succeed, close the http process', function() {
         targetServer.close()
     })

@@ -1,5 +1,5 @@
 const http = require('http')
-const HttpProxyPlugin = require('../../src/proxy')
+const HttpProxyPlugin = require('../../src/index').httpProxyer
 
 /**
  * 这个例子通过模拟一个服务器集群，展示极简的负载均衡

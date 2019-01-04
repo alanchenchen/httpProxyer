@@ -1,5 +1,5 @@
 const http = require('http')
-const HttpProxyPlugin = require('../../src/proxy')
+const HttpProxyPlugin = require('../../src/index').httpProxyer
 
 /**
  * 这个例子是展示HttpProxyPlugin插件提供的事件钩子函数
@@ -19,7 +19,9 @@ http.createServer((req, res) => {
             hi: 'alan',
             from: 'proxy'
         }
-        proxyRes.setHeader('hey', 'boy')
+        proxyRes.setHeader('hey', 'proxy')
+        proxyRes.write(JSON.stringify(modifyiedData))
+        proxyRes.end()
     })
     console.log(ins)
 })
@@ -65,6 +67,6 @@ const generateHanlder = (port) => {
     }
 }
 
-// http.createServer(generateHanlder(PORT)).listen(PORT, () => {
-//     console.log(`目标服务器启动成功，监听${PORT}...`)
-// })
+http.createServer(generateHanlder(PORT)).listen(PORT, () => {
+    console.log(`目标服务器启动成功，监听${PORT}...`)
+})

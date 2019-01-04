@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
-const proxer = require('../../src/proxyMiddleware')
-const static = require('../../src/staticMiddleware')
+const proxer = require('../../src/index').proxyMiddleware
+const static = require('../../src/index').staticMiddleware
 
 /**
  * 这个例子是展示基于插件编写的express中间件使用方法

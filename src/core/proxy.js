@@ -1,6 +1,6 @@
 const http = require('http')
 const { parse } = require('url')
-const version = require('../package.json').version
+const version = require('../../package.json').version
 
 const NeedRequestBodyMethods = ['PUT', 'POST', 'PATCH']
 

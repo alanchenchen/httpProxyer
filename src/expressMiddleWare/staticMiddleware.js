@@ -1,4 +1,4 @@
-const staticPlugin = require('./staticServer')
+const staticPlugin = require('../core/staticServer')
 
 /**
  * @description 基于staticServer扩展的express中间件，可以将请求转到下一个中间件
