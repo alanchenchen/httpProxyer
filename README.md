@@ -71,7 +71,7 @@
 ## Unit tests
 * test目录里目前只有一个测试用例，分别测试了`httpProxyer`的`createProxyServer()`、`proxy()`和`on()`方法。
 * 测试框架为mocha，如果需要增加测试用例，操作如下：
-    1. git clone git@github.com:alanchenchen/library-template.git
+    1. `git clone git@github.com:alanchenchen/httpProxyer.git`
     2. 在test目录里新增测试文件，约定测试文件必须是`*.test.js`后缀格式，必须在js后缀前加test后缀。
     3. `yarn`或`npm install`安装开发依赖mocha
     4. `npm test`在终端terminal查看测试结果
