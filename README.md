@@ -18,7 +18,7 @@
 ![](https://img.shields.io/npm/v/@alanchenchen/httpproxyer.svg)
 ![](https://img.shields.io/node/v/@alanchenchen/httpproxyer.svg)
 ![](https://img.shields.io/npm/dt/@alanchenchen/httpproxyer.svg)
-![](https://img.shields.io/github/license/alanchenchen/httpProxyer.svg)
+[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
 </div>
 
