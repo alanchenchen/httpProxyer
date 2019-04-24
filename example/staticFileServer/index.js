@@ -15,17 +15,20 @@ const http = require('http')
  */
 http.createServer(async (req, res) => {
     // 路径匹配成功，返回静态文件
-    const flag = await staticFile.start(req, res, {
-        rootPath: '../../',
-        homePage: 'package.json'
-    })
-
-    // 路径匹配失败，转发代理请求
-    if(!flag) {
-        httpProxyer.proxy(req, res, {
-            target: 'http://127.0.0.1:8080'
+    try {
+        await staticFile.start(req, res, {
+            rootPath: '../../',
+            homePage: 'package.json'
         })
-    }
+    } catch (error) {
+        if(error) {
+            // 路径匹配失败，转发代理请求
+            httpProxyer.proxy(req, res, {
+                target: 'https://www.baidu.com'
+            })
+        }
+    } 
+
 }).listen(7000, () => {
     console.log('server is running at 7000')
 })

@@ -1,8 +1,8 @@
 {
   "name": "@alanchenchen/httpproxyer",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "author": "Alan Chen",
-  "license": "MIT",
+  "license": "996.ICU",
   "description": "A simple http server proxy module implented with nodejs",
   "main": "src/index.js",
   "directories": {

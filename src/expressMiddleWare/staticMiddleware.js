@@ -6,15 +6,17 @@ const staticPlugin = require('../core/staticServer')
  */
 const middleWare = ({rootPath, homePage}={}) => {
     return async (req, res, next) => {
-        const flag = await staticPlugin.start(req, res, {
-            rootPath,
-            homePage
-        })
-
-        // 路径匹配不到文件，将req移交给下一个中间件
-        if(!flag) {
-            next()
-        }
+        try {
+            await staticPlugin.start(req, res, {
+                rootPath,
+                homePage 
+            })
+        } catch (error) {
+            if(error) {
+                // 路径匹配失败，转发代理请求
+                next()
+            }
+        } 
     }
 }
 

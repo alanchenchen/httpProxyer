@@ -1,35 +1,10 @@
 const http = require('http')
+const https = require('https')
 const { parse } = require('url')
-const version = require('../../package.json').version
+const version = require('../../../package.json').version
+const { queryFunctionParams } = require('../../utils')
 
 const NeedRequestBodyMethods = ['PUT', 'POST', 'PATCH']
-
-/**
- * @description 获取函数的形参名称字符串
- * @param {Function} fn 
- * @returns {Array} 包含所有形参字符串的数组
- */
-const queryFunctionParams = fn => {
-    const funcString = fn.toString()
-    const regExp =/function\s*\w*\(([\s\S]*?)\)/
-    const regExp2 =/\s*\w*\(([\s\S]*?)\)/
-
-    if(regExp.test(funcString)) {
-        const argList = RegExp.$1.split(',')
-        return argList.map(arg => {
-            return arg.replace(/\s/g,'')
-        })
-    }
-    else if(regExp2.test(funcString)) {
-        const argList = RegExp.$1.split(',')
-        return argList.map(arg => {
-            return arg.replace(/\s/g,'')
-        })
-    }
-    else {
-        return []
-    }
-}
 
 class ProxyHttp {
     constructor() {
@@ -39,21 +14,38 @@ class ProxyHttp {
     }
 
     /**
-     * @description 转发请求并写入响应数据到指定可写流
+     * 转发请求并写入响应数据到指定可写流
+     * 
      * @param {Object} options request请求的配置参数，包含请求头
-     * @param {String | Buffer} body 请求内容 
+     * @param {String | Buffer} reqBody 请求内容 
      * @param {WriteStream} writeStream 需要写入返回数据的可写流
      */
     _clientRequest(options, reqBody, writeStream) {
-        const ClientRequest = http.request(options, res => {
+        /**
+         * 针对https请求做一些必要处理，port必须为443。
+         * 实测发现https的ClinetRequest实例调用setHeaders没有生效，所以在options里预先更改headers.host，主要用来避免服务器反爬虫导致报错。
+         * 实测https的ClinetRequest实例不手动调用end方法也可以发出请求。
+         */
+        const { protocol } = options
+        let FinalRequestModule = http
+        let FinalRequestOpts = options
+        if (protocol == 'https:') {
+            FinalRequestModule = https
+            FinalRequestOpts.port = 443
+            FinalRequestOpts.headers.host = ''
+        }
+
+        const ClientRequest = FinalRequestModule.request(FinalRequestOpts, res => {
             /**
              * proxy server转发请求到target server，返回响应头，httpCode以及响应体
              */
-            const responseHeaders = res.headers
-            const responseStatusCode = res.statusCode
+            const proxyResponseData = {
+                headers: res.headers,
+                statusCode: res.statusCode
+            }
 
-            writeStream.statusCode = responseStatusCode
-            Object.entries(responseHeaders).forEach(item => {
+            writeStream.statusCode = proxyResponseData.statusCode
+            Object.entries(proxyResponseData.headers).forEach(item => {
                 writeStream.setHeader(item[0], item[1])
             })
             /**
@@ -67,25 +59,21 @@ class ProxyHttp {
              * res => 目标服务器返回给代理服务器的数据，可读流
              * proxyResponseData => 包含响应头和http状态码的信息对象，只读
              */
-            const proxyResponseData = {
-                    headers: responseHeaders,
-                    statusCode: responseStatusCode
-            }
             const resFnStr = this.proxyEvents['proxyResponse']
-                          && this.proxyEvents['proxyResponse'].toString()
+                && this.proxyEvents['proxyResponse'].toString()
             const proxyResStr = resFnStr
-                             && queryFunctionParams(resFnStr)[0]
+                && queryFunctionParams(resFnStr)[0]
             const resRegExpRule = new RegExp(`(${proxyResStr}\.(write|end)|pipe\.${proxyResStr})`)
             const shouldResponseSourceChunks = !this.proxyEvents['proxyResponse'] || !resRegExpRule.test(resFnStr)
 
-            if(this.proxyEvents['proxyResponse']) {
+            if (this.proxyEvents['proxyResponse']) {
                 this.proxyEvents['proxyResponse'](writeStream, res, proxyResponseData)
             }
-            if(shouldResponseSourceChunks) {
+            if (shouldResponseSourceChunks) {
                 res.pipe(writeStream)
             }
         })
-        
+
         /**
          * 插件的proxyRequest事件在转发请求之前触发
          * 1. 当没有事件监听时，默认转发请求数据
@@ -97,56 +85,74 @@ class ProxyHttp {
          * proxyRequestData => 包含请求头和请求url之类的信息对象，只读
          */
         const reqFnStr = this.proxyEvents['proxyRequest']
-                      && this.proxyEvents['proxyRequest'].toString()
-        const proxyReqStr = reqFnStr 
-                         && queryFunctionParams(reqFnStr)[0]
+            && this.proxyEvents['proxyRequest'].toString()
+        const proxyReqStr = reqFnStr
+            && queryFunctionParams(reqFnStr)[0]
         const reqRegExpRule = new RegExp(`(${proxyReqStr}\.(write|end)|pipe\.${proxyReqStr})`)
         const shouldRequestSourceChunks = !this.proxyEvents['proxyRequest'] || !reqRegExpRule.test(reqFnStr)
 
-        if(this.proxyEvents['proxyRequest']) {
-            const proxyRequestData = options
+        if (this.proxyEvents['proxyRequest']) {
+            const proxyRequestData = FinalRequestOpts
             this.proxyEvents['proxyRequest'](ClientRequest, proxyRequestData)
         }
-        if(shouldRequestSourceChunks) {
+        if (shouldRequestSourceChunks) {
             // 仅当请求是POST、PUT或PATCH，proxy server发出请求带上请求体信息
-            if(NeedRequestBodyMethods.includes(options.method)) {
+            if (NeedRequestBodyMethods.includes(FinalRequestOpts.method)) {
                 reqBody.forEach(body => {
-                    if(typeof body == 'string' || Buffer.isBuffer(body)) {
+                    if (typeof body == 'string' || Buffer.isBuffer(body)) {
                         ClientRequest.write(body)
                     }
                 })
             }
+            ClientRequest.end()
         }
-        ClientRequest.end()
-        
+
         // 处理从target server返回的错误
         ClientRequest.on('error', e => {
             /**
              * 插件的proxyError事件在转发请求发生错误时触发
              */
             this.proxyEvents['proxyError']
-            && this.proxyEvents['proxyError'](e, 'server')
+                && this.proxyEvents['proxyError'](e, 'server')
             throw new Error('some errors occured from http server')
         })
     }
 
-    createListener(target) {
+    /**
+     * 接收请求,拼接代理服务器信息和本地服务器信息，生成一个httpServerListenHandler
+     * 
+     * @param {URL} target 代理远程服务器的URL，可以包含完整的path路径，可选query和hash信息
+     * @param {Boolean} inherit 转发请求是否继承当前target的query和hash信息，默认false，false表示本地代理服务器的path和请求远程服务器的path永远保持一致 
+     * @returns {ProxyHttp}
+     */
+    createListener({ target, inherit = false }) {
         try {
             parse(target, true)
-        } 
+        }
         catch (error) {
             throw new Error('target server must be an URL string')
         }
 
-        this.targetServer = target
+        this.proxyConfigs = {
+            target,
+            inherit
+        }
 
         this.proxyServerListener = (req, res) => {
-            const { slashes, pathname, href, hash, search, query, ...TARGET_SERVER_OPTIONS } = parse(this.targetServer, true)
+            const { protocol, port, path: targetPath, hostname, auth } = parse(target, true)
             const { method, url, headers } = req
-            const { path } = parse(url, true)
+            let path = parse(url, true).path
+            if (inherit === true) {
+                if (targetPath != '/') {
+                    path = path == '/' ? targetPath : targetPath + path
+                }
+            }
 
             // 通过proxy server的接收请求可读流，读取出请求体信息
-            let reqBody = [] // 为了避免请求体是buffer的情况，所以不能用字符串拼接
+            /**
+             * 为了避免请求体是buffer的情况，所以不能用字符串拼接
+             */
+            let reqBody = []
             req.on('data', chunk => {
                 reqBody.push(chunk)
             })
@@ -155,12 +161,15 @@ class ProxyHttp {
             req.on('end', () => {
                 // 读取proxy server的接收请求的url、method和headers信息，和target server信息合并当作proxy server的发出请求的配置信息
                 const options = {
-                    ...TARGET_SERVER_OPTIONS,
-                    method,
+                    protocol,
+                    hostname,
+                    port,
                     path,
-                    headers
+                    method,
+                    headers,
+                    auth
                 }
-                
+
                 // proxy server转发请求到target server并返回数据到接收请求的可写流
                 this._clientRequest(options, reqBody, res)
             })
@@ -168,7 +177,7 @@ class ProxyHttp {
             req.on('error', (e) => {
                 // 插件的proxyError事件在接收请求，发生错误触发
                 this.proxyEvents['proxyError']
-                && this.proxyEvents['proxyError'](e, 'client')
+                    && this.proxyEvents['proxyError'](e, 'client')
             })
 
             return this
@@ -177,33 +186,54 @@ class ProxyHttp {
         return this
     }
 
-    listen(port=80, ...rest) {
+    /**
+     * 监听端口，开启服务器
+     * 
+     * @param {Number} port 默认80 
+     * @param  {...any} rest 当为一个参数时，必须是回调函数，当有两个参数时，参数一是host，参数二是回调函数
+     * @returns {ProxyHttp}
+     */
+    listen(port = 80, ...rest) {
         let host = 'localhost'
         let cb
-        if(rest.length == 1) {
+        if (rest.length == 1) {
             cb = rest[0]
         }
-        else if(rest.length == 2) {
+        else if (rest.length == 2) {
             host = rest[0]
             cb = rest[1]
         }
         this.proxyServer = http.createServer(this.proxyServerListener).listen(port, host, () => {
-            // console.log(`proxy server http://${host}:${port} to ${this.targetServer} is running...`)
             cb && cb()
         })
 
         return this
     }
 
+    /**
+     * 关闭服务器监听
+     * 
+     * @param {Function} cb 可选，关闭服务器监听后的回调函数
+     * @returns {ProxyHttp}
+     */
     close(cb) {
         this.proxyServer.close(() => {
             cb && cb()
         })
+
+        return this
     }
 
-    on(event, handler) {
-        switch (event) {
-            case 'proxyRequest': 
+    /**
+     * 事件钩子监听
+     * 
+     * @param {String} hook hook名称，proxyRequest、proxyResponse和proxyError其中之一
+     * @param {Function} handler hook的回调函数
+     * @returns {ProxyHttp}
+     */
+    on(hook, handler) {
+        switch (hook) {
+            case 'proxyRequest':
                 this.proxyEvents['proxyRequest'] = handler
                 break
             case 'proxyResponse':
@@ -218,32 +248,4 @@ class ProxyHttp {
     }
 }
 
-/**
- * @description 模块默认导出的对象
- * @method createProxyServer function(target Object) ProxyHttpInstance  
- * @method proxy function(readStream IncomingMessage, writeSteam ServerResponse, target Object) ProxyHttpInstance 
- */ 
-const HttpProxyPlugin = { 
-    /**
-     * @description 启用一个服务器事件监听器，必须调用listen方法才能开启服务器监听并代理转发
-     * @param {URL} target 必须是代理服务器的http地址，例如：http://127.0.0.1:7070
-     * @returns {ProxyHttp Instance} 可以链式调用，必须调用listen方法，才会启用服务器监听
-     */
-    createProxyServer({target}){
-        return new ProxyHttp().createListener(target)
-    },
-    /**
-     * @description 代理转发已有服务器的请求,可以实现反向代理和负载均衡
-     * @param {ReadStream} readStream 可读流，Http Server类request事件的第一个参数req
-     * @param {WriteSteam} writeSteam 可写流，Http Server类request事件的第二个参数res
-     * @param {URL} target 必须是代理服务器的http地址，例如：http://127.0.0.1:7070
-     * @returns {ProxyHttp Instance} 可以链式调用，可以使用on来监听事件
-     */
-    proxy(readStream, writeSteam, {target}) {
-        return new ProxyHttp()
-                    .createListener(target)
-                    .proxyServerListener(readStream, writeSteam)
-    } 
-}
-
-module.exports = HttpProxyPlugin
+module.exports = ProxyHttp

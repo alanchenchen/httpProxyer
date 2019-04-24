@@ -11,15 +11,18 @@ app.use(static({
     rootPath: '../../'
 }))
 
-app.use(proxer('http://localhost:4000', {
-    proxyRequest(proxyReq, opt) {
-        proxyReq.setHeader('whoami', 'AlanChen')
-        // console.log(opt)
-        console.log('请求被拦截啦')
-    },
-    proxyError(err, from) {
-        console.log(err)
-        console.log(from)
+app.use(proxer({
+    target: 'http://localhost:4000',
+    hooks: {
+        proxyRequest(proxyReq, opt) {
+            proxyReq.setHeader('whoami', 'AlanChen')
+            // console.log(opt)
+            console.log('请求被拦截啦')
+        },
+        proxyError(err, from) {
+            console.log(err)
+            console.log(from)
+        }
     }
 }))
 

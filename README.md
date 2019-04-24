@@ -1,14 +1,14 @@
 # httpProxyer
 
-> 代理转发http请求的node包，无依赖，支持反向代理实现负载均衡，提供事件钩子函数拦截并重写数据
+> 代理转发http和https请求的node包，无依赖
 
 > Author : Alan Chen
 
-> version: 0.0.7
+> version: 0.0.8
 
 > node >= 8.11.1
 
-> Date: 2019/1/4
+> Date: 2019/4/23
 
 <div align="center">
 
@@ -21,6 +21,13 @@
 [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
 </div>
+
+## Features
+1. 支持代理http和https请求，支持自启一个代理服务器。自启的服务器只支持http的protocol
+2. 支持反向代理实现负载均衡
+3. 提供事件钩子函数拦截并重写数据
+4. 提供express的中间件
+5. 提供静态文件服务器工具
 
 ## Usage 
 
@@ -37,12 +44,16 @@
 #### httpProxyer对象方法
 导出一个对象，自带2个方法，每个方法调用一次都会返回一个ProxyHttp实例。
 
-1. createProxyServer 启用一个服务器事件监听器，必须调用listen方法才能开启服务器监听并代理转发。常用于正向代理。参数如下：
-    * opts `[Object]`， 目前只支持一个target的key。值必须是代理服务器的http地址，例如：http://127.0.0.1:7070
+1. createProxyServer 启用一个服务器事件监听器，必须调用listen方法才监听端口并代理转发。常用于正向代理。参数如下：
+    * opts `[Object]`，
+        *  target `[String]`。必须是代理服务器的http或https地址，例如：http://127.0.0.1:7070
+        *  inherit `[String]`。可选，转发请求是否继承当前target的query和hash信息
 2. proxy 代理转发已有服务器的请求,可以实现反向代理和负载均衡。参数如下：
     * IncomingMessage `[可读流]`，Http Server类request事件的第一个参数req
     * ServerResponse `[可写流]`，Http Server类request事件的第二个参数res
-    * opts `[Object]`， 目前只支持一个target的key。值必须是代理服务器的http地址，例如：http://127.0.0.1:7070 
+    * opts `[Object]`，
+        *  target `[String]`。必须是代理服务器的http或https地址，例如：http://127.0.0.1:7070
+        *  inherit `[String]`。可选，转发请求是否继承当前target的query和hash信息
 
 #### ProxyHttp实例 
 1. ProxyHttp实例支持事件监听，通过`on(event, callback)`来调用，第一个参数是事件名，第二个参数是回调函数。目前支持3个事件钩子：
@@ -55,18 +66,18 @@
         * opts  `[Object]`，包含响应头和http状态码的信息对象，只读
     * `proxyError` 在代理服务器接收客户端请求或转发请求发生错误时触发，函数有2个参数
         * error `[Error]` 错误对象
-        * from `[String]` server或client中其一种字符串。server表示错误发生在代理服务请求出错。client表示代理服务器接收客户端请求出错。  
+        * from `[String]` server或client其中一字符串。server表示错误发生在代理服务请求出错。client表示代理服务器接收客户端请求出错。  
 2. ProxyHttp实例还自带一个`close`方法，使用方法和node的http模块类似。可选一个回调函数，当关闭服务器后触发。
 
 ### staticServer 
-导出一个类，自带1个静态方法`start`。返回一个promise，promise只会存在then，then返回一个布尔值，用来判断当前路径是否存在静态文件。true，会返回文件，false，表示当前路径不存在静态文件。参数如下：
+导出一个类，自带1个静态方法`start`。返回一个promise，then表示当前路径是否存在静态文件，会返回文件，reject表示当前路径不存在静态文件，会返回一个Error对象。参数如下：
 * IncomingMessage `[可读流]`，Http Server类request事件的第一个参数req
 * ServerResponse `[可写流]`，Http Server类request事件的第二个参数res
 * opts `[Object]`， 目前支持两个key。
     * rootPath `[String]` 指定文件目录作为服务器根目录，默认为'/'，即进程运行的的目录
     * homePage `[String]` 当req的url为'/'时跳转的首页文件，默认为'index.html'
 
-> 基于两个插件实现的express中间件`proxyMiddleware`和`staticMiddleware`用法同上面类似，可以去[example/express](./example/express/server.js)看详细例子。 
+> 基于两个插件实现的express中间件`proxyMiddleware`和`staticMiddleware`用法同上面类似，可以去[example/express](./example/express/index.js)看详细例子。 
 
 ## Unit tests
 * test目录里目前只有一个测试用例，分别测试了`httpProxyer`的`createProxyServer()`、`proxy()`和`on()`方法。
@@ -77,4 +88,4 @@
     4. `npm test`在终端terminal查看测试结果
 
 ## license
-* MIT
+* Anti 996(996.ICU)
