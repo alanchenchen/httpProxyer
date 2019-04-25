@@ -21,9 +21,11 @@ class StaticFile {
                             : req.url
 
             const reqPath = join(process.cwd(), rootPath, filePath)
-            
             const stream = createReadStream(reqPath)
-            res.setHeader('Content-Type', 'text/plain; charset=utf-8')
+            /**
+             * @comment 不能返回指定编码格式的响应头，只能返回chunks，然后浏览器自动解码
+             */
+            // res.setHeader('Content-Type', 'text/plain; charset=utf-8')
             stream.pipe(res)
             stream.on('data', () => {
                 resolve()

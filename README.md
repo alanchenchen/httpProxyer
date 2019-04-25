@@ -4,11 +4,11 @@
 
 > Author : Alan Chen
 
-> version: 0.0.8
+> version: 0.0.9
 
 > node >= 8.11.1
 
-> Date: 2019/4/23
+> Date: 2019/4/25
 
 <div align="center">
 
@@ -67,7 +67,8 @@
     * `proxyError` 在代理服务器接收客户端请求或转发请求发生错误时触发，函数有2个参数
         * error `[Error]` 错误对象
         * from `[String]` server或client其中一字符串。server表示错误发生在代理服务请求出错。client表示代理服务器接收客户端请求出错。  
-2. ProxyHttp实例还自带一个`close`方法，使用方法和node的http模块类似。可选一个回调函数，当关闭服务器后触发。
+2. ProxyHttp实例自带一个`listen`方法，使用方法和node的http模块类似。
+3. ProxyHttp实例自带一个`close`方法，使用方法和node的http模块类似。可选一个回调函数，当关闭服务器后触发。
 
 ### staticServer 
 导出一个类，自带1个静态方法`start`。返回一个promise，then表示当前路径是否存在静态文件，会返回文件，reject表示当前路径不存在静态文件，会返回一个Error对象。参数如下：
@@ -86,6 +87,10 @@
     2. 在test目录里新增测试文件，约定测试文件必须是`*.test.js`后缀格式，必须在js后缀前加test后缀。
     3. `yarn`或`npm install`安装开发依赖mocha
     4. `npm test`在终端terminal查看测试结果
+
+## Attentions
+1. httpProxyer中如果输入target，代理转发时会取URL的protocol、hostname、port和path(包括query不包括hash)，当protocol为https时，port会被强制重写为443。当inherit为false，只取pathname(不包括query不包括hash)
+2. staticServer的rootPath合成的绝对路径会加上当前进程的绝对路径
 
 ## license
 * Anti 996(996.ICU)
