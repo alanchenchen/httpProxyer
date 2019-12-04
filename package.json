@@ -1,6 +1,6 @@
 {
   "name": "@alanchenchen/httpproxyer",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "author": "Alan Chen",
   "license": "996.ICU",
   "description": "A simple http server proxy module implented with nodejs",
