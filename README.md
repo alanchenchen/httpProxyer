@@ -4,11 +4,11 @@
 
 > Author : Alan Chen
 
-> version: 0.0.9
+> version: 0.1.0
 
 > node >= 8.11.1
 
-> Date: 2019/4/25
+> Date: 2019/12/4
 
 <div align="center">
 
@@ -74,9 +74,14 @@
 导出一个类，自带1个静态方法`start`。返回一个promise，then表示当前路径是否存在静态文件，会返回文件，reject表示当前路径不存在静态文件，会返回一个Error对象。参数如下：
 * IncomingMessage `[可读流]`，Http Server类request事件的第一个参数req
 * ServerResponse `[可写流]`，Http Server类request事件的第二个参数res
-* opts `[Object]`， 目前支持两个key。
+* opts `[Object]`， 目前支持:
     * rootPath `[String]` 指定文件目录作为服务器根目录，默认为'/'，即进程运行的的目录
     * homePage `[String]` 当req的url为'/'时跳转的首页文件，默认为'index.html'
+    * returnContentType `[Boolean]` 是否返回请求对应文件的content-type响应头，默认为true
+    * gzip `[Boolean]` 是否对静态文件gzip压缩，默认为false
+    * gzipExclude `[Array<string>]` 忽略gzip压缩的文件后缀名list，默认为[]
+
+> 如果开启了gzip，并且目录里存在原文件和被gzip压缩的文件，则插件不会再次压缩，会直接读取gz文件。这样避免了静态服务器的性能开销。但必须保证原文件存在，例如：`index.html`和`index.html.gz`。
 
 > 基于两个插件实现的express中间件`proxyMiddleware`和`staticMiddleware`用法同上面类似，可以去[example/express](./example/express/index.js)看详细例子。 
 
