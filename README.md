@@ -53,7 +53,7 @@
     * ServerResponse `[可写流]`，Http Server类request事件的第二个参数res
     * opts `[Object]`，
         *  target `[String]`。必须是代理服务器的http或https地址，例如：http://127.0.0.1:7070
-        *  inherit `[String]`。可选，转发请求是否继承当前target的query和hash信息
+        *  inherit `[String]`。可选，转发请求是否继承当前target的path信息,默认只取客户端的path
 
 #### ProxyHttp实例 
 1. ProxyHttp实例支持事件监听，通过`on(event, callback)`来调用，第一个参数是事件名，第二个参数是回调函数。目前支持3个事件钩子：
@@ -94,8 +94,9 @@
     4. `npm test`在终端terminal查看测试结果
 
 ## Attentions
-1. httpProxyer中如果输入target，代理转发时会取URL的protocol、hostname、port和path(包括query不包括hash)，当protocol为https时，port会被强制重写为443。当inherit为false，只取pathname(不包括query不包括hash)
-2. staticServer的rootPath合成的绝对路径会加上当前进程的绝对路径
+1. 当inherit为false时，代理转发时会取代理地址target的protocol、hostname、port以及客户端URL的path(包括query不包括hash)，当inherit为true时，代理转发的path路径会合并target的path和客户端URL的path
+2. https时，port会被强制重写为443。
+3. staticServer的rootPath合成的绝对路径会加上当前进程的绝对路径
 
 ## license
 * Anti 996(996.ICU)
